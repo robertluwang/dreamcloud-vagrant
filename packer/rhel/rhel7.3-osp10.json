@@ -32,7 +32,7 @@
         "shutdown_command": "echo 'vagrant'|sudo -S /sbin/halt -h -p",
         "boot_wait": "5s",
         "boot_command": [
-            "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel7.3-ks.cfg<enter>"
+            "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel-ks.cfg<enter>"
         ]
     }],
 
@@ -51,10 +51,10 @@
         "type": "shell",
         "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
         "scripts": [
-        "../../scripts/rhel7.3-osp10.sh",
-        "../../scripts/rhel7.3-vbguest.sh",
-        "../../scripts/rhel7.3-publickey.sh",
-        "../../scripts/rhel7.3-cleanup.sh"]
+        "../../scripts/rhel-osp10.sh",
+        "../../scripts/rhel-vbguest.sh",
+        "../../scripts/rhel-publickey.sh",
+        "../../scripts/rhel-cleanup.sh"]
     }],
 
     "post-processors": [{
