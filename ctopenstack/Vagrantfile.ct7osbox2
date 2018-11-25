@@ -1,0 +1,22 @@
+# Vagrantfile
+# launch a centos7 based openstack sandbox using ct7os box
+# By Robert Wang @github.com/robertluwang
+# Feb 7th, 2018
+
+Vagrant.configure("2") do |config|
+    config.vm.box="dreamcloud/ct7os"
+    config.ssh.insert_key = false
+    config.vm.box_check_update = false
+
+    config.vm.define "ctosbox2" do |ct7|
+        ct7.vm.hostname = "ctosbox2"
+        ct7.vm.network :private_network, ip: "172.25.250.20"
+        ct7.vm.provision "shell", path: "../scripts/centos-pack-update.sh", privileged: true
+
+        ct7.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
+            vb.name="ctosbox2"
+            vb.memory=6144
+        end
+    end
+end

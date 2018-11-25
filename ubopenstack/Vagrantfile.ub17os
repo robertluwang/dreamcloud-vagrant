@@ -1,0 +1,64 @@
+
+# Vagrantfile
+# launch a ubuntu based openstack sandbox using ub17os box
+# By Robert Wang @github.com/robertluwang
+# Feb 5th, 2018
+
+$devs = <<SCRIPT
+
+nics=`cat /etc/netplan/*.yaml|grep -A1 ethernets|egrep -v "\-|ethernets"|cut -d: -f1`
+numif=`cat /etc/netplan/*.yaml|grep -A1 ethernets|egrep -v "\-|ethernets"|cut -d: -f1 | wc -l`
+
+cd ~/devstack
+
+if [ $numif = 2 ]
+then
+    # there are 2 NIC, will use 2nd hostonly NIC as openstack ip
+    hoif=`echo $nics|awk '{print $2}'`
+    hoip=`ip addr show $hoif|grep $hoif|grep global|awk '{print $2}'|cut -d/ -f1`
+
+    sed -i "/HOST_IP_IFACE=/c HOST_IP_IFACE=$hoif" local.conf
+    sed -i "/HOST_IP=/c HOST_IP=$hoip" local.conf
+
+    # run devstack
+    ./stack.sh
+else
+    # there is only one default NAT NIC, will use as openstack ip
+    natif=`echo $nics|awk '{print $1}'`
+    natip=`ip addr show $natif|grep $natif|grep global|awk '{print $2}'|cut -d/ -f1`
+
+    ipconf=`grep HOST_IP= local.conf|cut -d= -f2`
+
+    if [ $natip = $ipconf ]
+    then
+        # NAT ip same as ip on conf, just exit
+        exit 0
+    else
+        # NAT ip diff than ip on conf, will replace it 
+        sed -i "/HOST_IP_IFACE=/c HOST_IP_IFACE=$natif" local.conf
+        sed -i "/HOST_IP=/c HOST_IP=$natip" local.conf
+
+        ./stack.sh
+    fi
+fi
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+    config.vm.box="dreamcloud/ub17os"
+    config.ssh.insert_key = false
+    config.vm.box_check_update = false
+    
+    config.vm.define "ubopenstack" do |ubopenstack|
+        ubopenstack.vm.network :private_network, ip: "10.110.0.16"
+        ubopenstack.vm.provision "shell", inline: $devs, privileged: false
+        
+        ubopenstack.vm.hostname = "ubopenstack"
+        ubopenstack.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
+            vb.name="ubopenstack"
+            vb.memory=6144
+            vb.cpus=2
+        end
+    end
+end

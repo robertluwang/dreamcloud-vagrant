@@ -1,0 +1,23 @@
+# Vagrantfile
+# launch a rhel7.3 based openstack compute1 sandbox using osp10-compute1 box
+# By Robert Wang @github.com/robertluwang
+# Sept 25th, 2018
+
+Vagrant.configure("2") do |config|                                               
+    config.vm.box="dreamcloud/osp10-compute1"                                           
+    config.ssh.insert_key = false                                                
+    config.vm.box_check_update = false                                           
+                                                                                 
+    config.vm.define "compute1" do |vm2|                                      
+        vm2.vm.hostname = "compute1"                                          
+        vm2.vm.network :private_network, ip: "188.28.88.12"
+        vm2.vm.provision "shell", path: "../scripts/osp10-compute1-fix.sh", privileged: true
+
+        vm2.vm.provider :virtualbox do |vb|                                      
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]       
+            vb.name="osp10-compute1"                                                
+            vb.memory=2048 
+            vb.cpus=1                                                       
+        end                                                                      
+    end                                                                          
+end  

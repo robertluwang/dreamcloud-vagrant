@@ -1,0 +1,26 @@
+# Vagrantfile
+# launch a rhel7.3 based openstack sandbox using rhel7osp10 box
+# need 2 nodes: one for allinone node and one for compute1 node, launch compute1 at first then launch this allinone node
+# allinone: 188.28.88.11
+# compute1: 188.28.88.12
+# By Robert Wang @github.com/robertluwang
+# Sept 25th, 2018
+
+Vagrant.configure("2") do |config|                                               
+    config.vm.box="dreamcloud/rhel7osp10"                                           
+    config.ssh.insert_key = false                                                
+    config.vm.box_check_update = false                                           
+                                                                                 
+    config.vm.define "osp10-allinone" do |vm1|                                      
+        vm1.vm.hostname = "osp10-allinone"                                          
+        vm1.vm.network :private_network, ip: "188.28.88.11" 
+        vm1.vm.provision "shell", path: "../scripts/rhel7-pack-update.sh", args: ["188.28.88.12"], privileged: true
+                                                            
+        vm1.vm.provider :virtualbox do |vb|                                      
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]       
+            vb.name="osp10-allinone"                                                
+            vb.memory=6144 
+            vb.cpus=2                                                      
+        end                                                                      
+    end                                                                         
+end 
