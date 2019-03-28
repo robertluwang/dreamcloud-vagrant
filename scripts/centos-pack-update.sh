@@ -38,7 +38,7 @@ else
         natip=`ip addr show br-ex|grep "global dynamic br-ex"|awk '{print $2}'|cut -d/ -f1`
     fi
 
-    curl -LO https://raw.githubusercontent.com/robertluwang/cloud-hands-on-guide/master/dc-vagrant-cloud/scripts/centos-ovs-fix.sh
+    curl -LO https://raw.githubusercontent.com/robertluwang/dreamcloud-vagrant/master/scripts/centos-ovs-fix.sh
     chmod +x centos-ovs-fix.sh
     ./centos-ovs-fix.sh eth0 $natip
     exit 0 
