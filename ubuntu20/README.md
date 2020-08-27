@@ -84,6 +84,35 @@ vagrant on /vagrant type vboxsf (rw,nodev,relatime,iocharset=utf8,uid=900,gid=90
 ```
 NIC and Internet access,
 ```
+Keep in mind the network interface managed by netplan since ubuntu 18.04, 
+
+vagrant@ubuntu20:/etc$ cd netplan/
+vagrant@ubuntu20:/etc/netplan$ ll
+total 16
+drwxr-xr-x  2 root root 4096 Aug 27 13:53 ./
+drwxr-xr-x 78 root root 4096 Aug 27 13:53 ../
+-rw-r--r--  1 root root  195 Aug 27 12:50 01-netcfg.yaml
+-rw-r--r--  1 root root  114 Aug 27 13:53 50-vagrant.yaml
+vagrant@ubuntu20:/etc/netplan$ cat 01-netcfg.yaml
+# This file describes the network interfaces available on your system
+# For more information, see netplan(5).
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s3:
+      dhcp4: yes
+
+vagrant@ubuntu20:/etc/netplan$ cat 50-vagrant.yaml
+---
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s8:
+      addresses:
+      - 192.168.99.30/24
+
 vagrant@ubuntu20:~$ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
