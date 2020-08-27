@@ -82,10 +82,8 @@ vagrant@ubuntu20:~$ mount |grep vagrant
 /dev/mapper/vgvagrant-root on / type ext4 (rw,relatime,errors=remount-ro)
 vagrant on /vagrant type vboxsf (rw,nodev,relatime,iocharset=utf8,uid=900,gid=900)
 ```
-NIC and Internet access,
+keep in mind the network interface managed by netplan since ubuntu 18.04, 
 ```
-Keep in mind the network interface managed by netplan since ubuntu 18.04, 
-
 vagrant@ubuntu20:/etc$ cd netplan/
 vagrant@ubuntu20:/etc/netplan$ ll
 total 16
@@ -112,7 +110,9 @@ network:
     enp0s8:
       addresses:
       - 192.168.99.30/24
-
+```
+NIC and Internet access, 
+```
 vagrant@ubuntu20:~$ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
