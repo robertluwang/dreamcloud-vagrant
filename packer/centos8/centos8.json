@@ -1,0 +1,54 @@
+{
+  "builders": [
+    {
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter>"
+      ],
+      "disk_size": 51200,
+      "guest_os_type": "RedHat_64",
+      "headless": "true",
+      "http_directory": "ks",
+      "iso_checksum": "sha256:c67876a5602faa17f68b40ccf2628799b87454aa67700f0f57eec15c6ccdd98c",
+      "iso_url": "../../iso/CentOS-8.2.2004-x86_64-boot.iso",
+      "shutdown_command": "echo 'vagrant' | sudo -S /sbin/halt -h -p",
+      "ssh_password": "vagrant",
+      "ssh_username": "vagrant",
+      "ssh_wait_timeout": "50000s",
+      "type": "virtualbox-iso",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "1024"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "1"
+        ]
+      ],
+      "vm_name": "centos8.2"
+    }
+  ],
+  "post-processors": [
+    {
+      "output": "{{.Provider}}-centos8.2-vagrant-packer.box",
+      "type": "vagrant"
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "scripts": [
+        "../../scripts/centos-basebox.sh",
+        "../../scripts/centos-vbguest.sh",
+        "../../scripts/centos-publickey.sh",
+        "../../scripts/centos-cleanup.sh"
+      ],
+      "type": "shell"
+    }
+  ]
+}
+
