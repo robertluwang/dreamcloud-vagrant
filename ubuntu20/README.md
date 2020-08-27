@@ -77,6 +77,7 @@ tmpfs                       491M     0  491M   0% /sys/fs/cgroup
 /dev/sda1                   511M  4.0K  511M   1% /boot/efi
 vagrant                     476G  403G   73G  85% /vagrant
 tmpfs                        99M     0   99M   0% /run/user/900
+
 vagrant@ubuntu20:~$ mount |grep vagrant
 /dev/mapper/vgvagrant-root on / type ext4 (rw,relatime,errors=remount-ro)
 vagrant on /vagrant type vboxsf (rw,nodev,relatime,iocharset=utf8,uid=900,gid=900)
@@ -102,11 +103,13 @@ vagrant@ubuntu20:~$ ip a
        valid_lft forever preferred_lft forever
     inet6 fe80::a00:27ff:fede:728e/64 scope link
        valid_lft forever preferred_lft forever
+       
 vagrant@ubuntu20:~$ ip r
 default via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100
 10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15
 10.0.2.2 dev enp0s3 proto dhcp scope link src 10.0.2.15 metric 100
 192.168.99.0/24 dev enp0s8 proto kernel scope link src 192.168.99.30
+
 vagrant@ubuntu20:~$ ping -c 2 google.ca
 PING google.ca (216.58.194.131) 56(84) bytes of data.
 64 bytes from dfw06s49-in-f3.1e100.net (216.58.194.131): icmp_seq=1 ttl=103 time=57.5 ms
