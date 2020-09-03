@@ -1,5 +1,6 @@
 Vagrant.configure("2") do |config|
     config.vm.box="dreamcloud/ubuntu18"
+    config.vm.box_version = "2020.09.03"
     config.ssh.insert_key = false
     config.vm.box_check_update = false
     
