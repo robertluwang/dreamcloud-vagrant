@@ -43,4 +43,18 @@ NAME         STATUS   ROLES    AGE   VERSION
 k8s-master   Ready    master   81m   v1.19.0
 k8s-node     Ready    <none>   79m   v1.19.0
 ```
+## trick and tips 
+## vagrant NIC 
+There are two NICs used in vagrant:
+- NAT for internet access, default is 10.0.2.15
+- Host-only for internal network, 192.168.20.0/24 
 
+By default kubeadm always picked up NAT ip as etcd interface, however all vagrant vm has same ip and cannot talk each other using NAT.
+
+[certs] etcd/peer serving cert is signed for DNS names [localhost k8s-master] and IPs [10.0.2.15 127.0.0.1 ::1]
+
+As remedy, need to use option --apiserver-advertise-address
+```
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.20.23 \
+ | tee /tmp/kubeadm.log 
+```
