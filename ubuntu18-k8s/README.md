@@ -44,7 +44,9 @@ k8s-node     Ready    <none>   79m   v1.19.0
 ```
 ## k8s health check 
 ```
+systemctl status kubelet
 kubeadm config print init-defaults
+kubectl config view
 kubectl describe node k8s-master
 kubectl get nodes -o wide
 kubectl get pods --all-namespaces
