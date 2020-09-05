@@ -74,7 +74,7 @@ scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant k8s-master:$HOME/.kub
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 ### kubeadm join on worker
-The token is for 2 hours, since I launch k8s cluster from Vagrantfile for few test nodes in lab, so assume whole work will be done less than 2 hours, so I just save token from master to log and transfer to worker then run it.
+The token is for 2 hours, since I launch k8s cluster from Vagrantfile for few test nodes in lab, assume whole setup work will be done less than 2 hours, so I just save token as log file on master and fetch from worker then run it, it is fair enough for dev lab.
 ```
 scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant  k8s-master:/tmp/kubeadm.log  /tmp/kubeadm.log
 token=`cat /tmp/kubeadm.log |grep "kubeadm join"|head -1 |awk -Ftoken '{print $2}'|awk '{print $1}'`
