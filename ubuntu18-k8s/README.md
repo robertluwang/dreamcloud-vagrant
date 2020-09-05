@@ -20,12 +20,16 @@ assume the k8s cluster setting:
 - pod network: calico 
 
 ## launch k8s cluster from vagrant box 
+```
 /mnt/c/vagrant/ub18k8s$ vagrant.exe up
+```
+```
 /mnt/c/vagrant/ub18k8s$ vagrant.exe status
 Current machine states:
 
 k8s-master                running (virtualbox)
 k8s-node                  running (virtualbox)
+```
 
 ## k8s cluster is ready 
 ```
