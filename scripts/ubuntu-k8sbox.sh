@@ -1,23 +1,24 @@
 #!/bin/bash
-#  ubuntu k8s box provision script for packer  
+#  ubuntu 18.04 k8s 1.19 box provision script for packer  
 #  Robert Wang
-#  Jan 4th, 2018
+#  Sept 4th, 2020
 
-export DEBIAN_FRONTEND=noninteractive
+# update/upgrade system 
+apt-get update && apt-get upgrade -y 
 
 # install docker
-curl -fsSL get.docker.com -o get-docker.sh
-sh get-docker.sh
+apt-get install -y docker.io
 systemctl enable docker
 systemctl start docker
 
 usermod -aG docker vagrant
 
-rm get-docker.sh
-
+# turn off swap
+sudo swapoff -a
+sudo sed -i '/swap/d' /etc/fstab
 
 # install k8s 
-apt-get update && apt-get install -y -q apt-transport-https
-curl -sS https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' >> /etc/apt/sources.list.d/kubernetes.list
-apt-get update && apt-get install -y -q kubelet kubeadm kubectl kubernetes-cni
+curl -sS https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+apt-get update && apt-get install -y -q kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
