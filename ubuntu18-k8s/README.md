@@ -5,7 +5,6 @@
 ## tool set
 - Vagrant 2.2.10
 - Virtualbox 6.1
-- WSL 
 
 ## prepare Vagrantfile
 
@@ -43,7 +42,7 @@ NAME         STATUS   ROLES    AGE   VERSION
 k8s-master   Ready    master   81m   v1.19.0
 k8s-node     Ready    <none>   79m   v1.19.0
 ```
-## trick and tips 
+## common issue and remedy 
 ### vagrant NIC 
 There are two NICs used in vagrant:
 - NAT for internet access, default is 10.0.2.15
