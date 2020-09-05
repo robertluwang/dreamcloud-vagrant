@@ -27,6 +27,11 @@ kubectl apply -f  https://docs.projectcalico.org/manifests/calico.yaml
 # allow run on master
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
+# cli completion 
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+
 SCRIPT
 
 $nodeScript = <<SCRIPT
@@ -55,6 +60,11 @@ fi
 mkdir -p $HOME/.kube 
 scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant k8s-master:$HOME/.kube/config $HOME/.kube/config                                       
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# cli completion 
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
 
 SCRIPT
 
