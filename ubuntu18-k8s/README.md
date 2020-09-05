@@ -44,7 +44,7 @@ k8s-master   Ready    master   81m   v1.19.0
 k8s-node     Ready    <none>   79m   v1.19.0
 ```
 ## trick and tips 
-## vagrant NIC 
+### vagrant NIC 
 There are two NICs used in vagrant:
 - NAT for internet access, default is 10.0.2.15
 - Host-only for internal network, 192.168.20.0/24 
@@ -57,4 +57,20 @@ As remedy, need to use option --apiserver-advertise-address
 ```
 sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.20.23 \
  | tee /tmp/kubeadm.log 
+```
+### cannot run kubectl on worker node
+```
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+```
+The issue is lack of env setting on worker, which is from admin.config but it only generated when "kubeadm init" on master, so need to transfer to each worker and setup similar as on master, 
+```
+mkdir -p $HOME/.kube 
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config                                         
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+this is what I did, 
+```
+mkdir -p $HOME/.kube 
+scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant k8s-master:$HOME/.kube/config $HOME/.kube/config                                       
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
