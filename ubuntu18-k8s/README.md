@@ -1,4 +1,4 @@
-# launch k8s 1.19 cluster using vagrant box dreamcloud-ubuntu18-k8s
+# Launch Ubuntu k8s 1.19 cluster using vagrant box
 
 [dreamcloud/ubuntu18-k8s](https://app.vagrantup.com/dreamcloud/boxes/ubuntu18-k8s) is a k8s dev ready box, here is demo to show how to launch a 2 nodes k8s cluster in few mins using vagrant.
 
