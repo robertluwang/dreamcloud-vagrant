@@ -42,6 +42,13 @@ NAME         STATUS   ROLES    AGE   VERSION
 k8s-master   Ready    master   81m   v1.19.0
 k8s-node     Ready    <none>   79m   v1.19.0
 ```
+## k8s health check 
+```
+kubeadm config print init-defaults
+kubectl describe node k8s-master
+kubectl get nodes -o wide
+kubectl get pods --all-namespaces
+```
 ## common issue and remedy 
 ### vagrant NIC 
 There are two NICs used in vagrant:
