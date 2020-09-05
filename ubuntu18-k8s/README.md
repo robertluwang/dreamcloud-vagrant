@@ -83,5 +83,9 @@ certhash=`cat /tmp/kubeadm.log |grep discovery-token-ca-cert-hash|tail -1|awk '{
 sudo kubeadm join k8s-master:6443 --token $token \
   --discovery-token-ca-cert-hash $certhash 
 ```
-
-
+### cli completion 
+```
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+```
