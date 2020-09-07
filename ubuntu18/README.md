@@ -1,4 +1,4 @@
-# launch ubuntu18 dev vm from dreancloud-ubuntu18
+# launch ubuntu18 dev vm from dreamcloud-ubuntu18
 
 I build [dreamcloud/ubuntu18](https://app.vagrantup.com/dreamcloud/boxes/ubuntu18) vagrant box as practise, it is a dev ready vm:
 
@@ -10,7 +10,7 @@ Here is demo how to launch ubuntu18 vm from this base, add 2nd host-only interfa
 ## Vagrantfile
 ```
 Vagrant.configure("2") do |config|
-    config.vm.box="ub18"
+    config.vm.box="dreamcloud/ubuntu18"
     config.ssh.insert_key = false
     config.vm.box_check_update = false
     
