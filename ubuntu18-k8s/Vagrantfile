@@ -1,5 +1,5 @@
 # Vagrantfile
-# startup a ubuntu 18.04 k8s cluster from dreamcloud/k8s box
+# startup a ubuntu 18.04 k8s cluster from dreamcloud/ubuntu18-k8s box
 # By Robert Wang @github.com/robertluwang
 # Sept 3rd, 2020
 
