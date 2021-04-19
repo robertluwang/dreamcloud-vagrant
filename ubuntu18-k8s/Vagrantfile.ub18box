@@ -87,7 +87,7 @@ echo "source <(kubectl completion bash)" >> ~/.bashrc
 SCRIPT
 
 Vagrant.configure("2") do |config|
-    config.vm.box="dreamcloud/ubuntu18-k8s"
+    config.vm.box="dreamcloud/ubuntu18"
     config.ssh.insert_key = false
     config.vm.box_check_update = false
     
