@@ -31,7 +31,10 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 sudo apt-get install bash-completion -y
 source <(kubectl completion bash)
 echo "source <(kubectl completion bash)" >> ~/.bashrc
-
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+echo "export do='--dry-run=client -o yaml'" >>~/.bashrc
+ 
 SCRIPT
 
 $nodeScript = <<SCRIPT
@@ -65,7 +68,10 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo apt-get install bash-completion -y
 source <(kubectl completion bash)
 echo "source <(kubectl completion bash)" >> ~/.bashrc
-
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+echo "export do='--dry-run=client -o yaml'" >>~/.bashrc
+ 
 SCRIPT
 
 Vagrant.configure("2") do |config|
