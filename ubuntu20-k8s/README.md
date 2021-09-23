@@ -9,7 +9,7 @@
 ## prepare Vagrantfile
 
 ```
-$ mkdir /mnt/c/vagrant/ub18k8s
+$ mkdir /mnt/c/vagrant/ub20k8s
 $ curl -LO https://raw.githubusercontent.com/robertluwang/dreamcloud-vagrant/master/ubuntu20-k8s/Vagrantfile
 ```
 assume the k8s cluster setting:
