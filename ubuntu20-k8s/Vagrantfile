@@ -11,7 +11,7 @@ sudo sed -i "1i192.168.22.23        k8s-master" /etc/hosts
 sudo sed -i "2i192.168.22.24        k8s-node1" /etc/hosts
 sudo sed -i "2i192.168.22.25        k8s-node2" /etc/hosts
 
-sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.22.23 \
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.22.23 --ignore-preflight-errors=NumCPU \
  | tee /tmp/kubeadm.log  
 
 # allow normal user to run kubectl 
