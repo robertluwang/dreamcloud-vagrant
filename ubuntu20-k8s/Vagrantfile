@@ -1,0 +1,126 @@
+# Vagrantfile
+# startup a ubuntu 20.04 k8s 1.21 cluster from dreamcloud/ubuntu20-k8s box
+# By Robert Wang @github.com/robertluwang
+# Sept 22, 2021
+
+$masterScript = <<SCRIPT
+
+# update k8s-master /etc/hosts
+sudo sed -i  '/k8s/d' /etc/hosts
+sudo sed -i "1i192.168.22.23        k8s-master" /etc/hosts
+sudo sed -i "2i192.168.22.24        k8s-node1" /etc/hosts
+sudo sed -i "2i192.168.22.25        k8s-node2" /etc/hosts
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.22.23 \
+ | tee /tmp/kubeadm.log  
+
+# allow normal user to run kubectl 
+if [ -d $HOME/.kube ]; then
+  rm -r $HOME/.kube
+fi 
+mkdir -p $HOME/.kube 
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config                                         
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# install calico network addon
+kubectl apply -f  https://docs.projectcalico.org/manifests/calico.yaml
+
+# allow run on master
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+# cli completion 
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+echo "export do='--dry-run=client -o yaml'" >>~/.bashrc
+
+SCRIPT
+
+$nodeScript = <<SCRIPT
+
+# update k8s-node /etc/hosts
+sudo sed -i  '/k8s/d' /etc/hosts
+sudo sed -i "1i192.168.22.23        k8s-master" /etc/hosts
+sudo sed -i "2i192.168.22.24        k8s-node1" /etc/hosts
+sudo sed -i "2i192.168.22.25        k8s-node2" /etc/hosts
+
+# add private key 
+curl -Lo $HOME/.ssh/vagrant https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant
+chmod 0600 $HOME/.ssh/vagrant
+
+# join cluster
+scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant  k8s-master:/tmp/kubeadm.log  /tmp/kubeadm.log
+token=`cat /tmp/kubeadm.log |grep "kubeadm join"|head -1 |awk -Ftoken '{print $2}'|awk '{print $1}'`
+certhash=`cat /tmp/kubeadm.log |grep discovery-token-ca-cert-hash|tail -1|awk '{print $2}'`
+
+sudo kubeadm join k8s-master:6443 --token $token \
+  --discovery-token-ca-cert-hash $certhash 
+
+# allow normal user to run kubectl 
+if [ -d $HOME/.kube ]; then
+  rm -r $HOME/.kube
+fi 
+mkdir -p $HOME/.kube 
+scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant k8s-master:$HOME/.kube/config $HOME/.kube/config                                       
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# cli completion 
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+echo "export do='--dry-run=client -o yaml'" >>~/.bashrc
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "dreamcloud/ubuntu20-k8s"
+    config.vm.box_version = "2021.09.22"
+    config.ssh.insert_key = false
+    config.vm.box_check_update = false
+    
+    config.vm.define "k8s-master" do |master|
+        master.vm.hostname = "k8s-master"
+        master.vm.network :private_network, ip: "192.168.22.23"
+        master.vm.network "forwarded_port", guest: 8443, host: 8443, protocol: "tcp"
+        master.vm.network "forwarded_port", guest: 30000, host: 30000, protocol: "tcp"
+        master.vm.provision "shell", inline: "date; echo master provision starting", privileged: false
+        master.vm.provision "shell", inline: $masterScript, privileged: false
+        master.vm.provision "shell", inline: "date; echo master provision finished", privileged: false
+  
+        master.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
+            vb.name="k8s-master"
+            vb.memory=2048
+        end
+    end
+    
+    config.vm.define "k8s-node1" do |node|
+        node.vm.hostname = "k8s-node1"
+        node.vm.network :private_network, ip: "192.168.22.24"
+        node.vm.provision "shell", inline: "date; echo node provision starting", privileged: false
+        node.vm.provision "shell", inline: $nodeScript, privileged: false
+        node.vm.provision "shell", inline: "date; echo node provision finished", privileged: false
+                
+        node.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
+            vb.name="k8s-node1"
+        end
+    end
+
+    config.vm.define "k8s-node2" do |node|
+        node.vm.hostname = "k8s-node2"
+        node.vm.network :private_network, ip: "192.168.22.25"
+        node.vm.provision "shell", inline: "date; echo node provision starting", privileged: false
+        node.vm.provision "shell", inline: $nodeScript, privileged: false
+        node.vm.provision "shell", inline: "date; echo node provision finished", privileged: false
+              
+        node.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
+            vb.name="k8s-node2"
+        end
+    end    
+end
