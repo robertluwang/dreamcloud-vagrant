@@ -94,7 +94,7 @@ Vagrant.configure("2") do |config|
         master.vm.provider :virtualbox do |vb|
             vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
             vb.name="k8s-master"
-            vb.memory=2048
+            vb.memory=4096
         end
     end
     
