@@ -1,4 +1,4 @@
-# Launch Ubuntu 20.04 k8s 1.21.8 cluster using vagrant box
+# Launch Ubuntu 20.04 k8s 1.21.4 cluster using vagrant box
 
 [dreamcloud/ubuntu20-k8s](https://app.vagrantup.com/dreamcloud/boxes/ubuntu20-k8s) is a k8s dev ready box, here is demo to show how to launch a 3 nodes k8s cluster in few mins using vagrant.
 
@@ -36,15 +36,15 @@ k8s-node2                  running (virtualbox)
 ```
 vagrant@k8s-master:~$ kubectl get nodes
 NAME         STATUS   ROLES    AGE   VERSION
-k8s-master   Ready    master   50m   v1.21.0
-k8s-node1     Ready    <none>   49m   v1.21.0
-k8s-node2     Ready    <none>   49m   v1.21.0
+k8s-master   Ready    master   50m   v1.21.4
+k8s-node1     Ready    <none>   49m   v1.21.4
+k8s-node2     Ready    <none>   49m   v1.21.4
 
 vagrant@k8s-node1:~$ kubectl get nodes
 NAME         STATUS   ROLES    AGE   VERSION
-k8s-master   Ready    master   81m   v1.19.0
-k8s-node1     Ready    <none>   79m   v1.19.0
-k8s-node2     Ready    <none>   49m   v1.21.0
+k8s-master   Ready    master   81m   v1.21.4
+k8s-node1     Ready    <none>   79m   v1.21.4
+k8s-node2     Ready    <none>   49m   v1.21.4
 ```
 ## k8s health check 
 ```
