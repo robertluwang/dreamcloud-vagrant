@@ -1,0 +1,191 @@
+# Vagrantfile
+# startup a 2 nodes ubuntu k8s cluster from generic/ubuntu1804 box on Hyper-V
+# By Robert Wang @github.com/robertluwang
+# Oct 30, 2021
+
+$nic = <<SCRIPT
+
+echo === $(date) Provisioning - nic $1 by $(whoami) start  
+
+cat <<EOF | sudo tee /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: no
+      dhcp6: no
+      addresses: [$1/24]
+      gateway4: 192.168.120.1
+      nameservers:
+        addresses: [4.2.2.1, 4.2.2.2, 208.67.220.220]
+EOF
+
+cat /etc/netplan/01-netcfg.yaml
+
+sudo netplan apply
+
+echo eth0 setting
+
+ip addr
+ip route
+ping -c 2 google.ca
+
+echo === $(date) Provisioning - nic $1 by $(whoami) end
+
+SCRIPT
+
+$dockerInstall = <<SCRIPT
+
+echo === $(date) Provisioning - dockerInstall by $(whoami) start
+
+sudo apt-get update -y
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update -y
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+# turn off swap
+sudo swapoff -a
+sudo sed -i '/swap/d' /etc/fstab
+
+sudo mkdir /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+echo === $(date) Provisioning - dockerInstall by $(whoami) end
+
+SCRIPT
+
+$k8sInstall = <<SCRIPT
+
+echo === $(date) Provisioning - k8sInstall by $(whoami) start
+
+sudo apt-get update -y
+sudo apt-get install -y apt-transport-https ca-certificates curl
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update -y
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+# cli completion
+sudo apt-get install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+echo "export do='--dry-run=client -o yaml'" >>~/.bashrc
+
+echo === $(date) Provisioning - k8sInstall by $(whoami) end
+
+SCRIPT
+
+$k8sInit = <<SCRIPT
+
+# $1 - master/api server ip 
+
+echo === $(date) Provisioning - k8sInit $1 by $(whoami) start
+
+if [ -z "$1" ];then
+    sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem | tee /tmp/kubeadm.log
+else
+    sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=$1 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem | tee /tmp/kubeadm.log
+fi
+
+# allow normal user to run kubectl
+if [ -d $HOME/.kube ]; then
+  rm -r $HOME/.kube
+fi
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# install calico network addon
+kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
+kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
+
+# allow run on master
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+echo === $(date) Provisioning - k8sInit $1 by $(whoami) end
+
+SCRIPT
+
+$k8sJoin = <<SCRIPT
+# $1 - master/api server ip
+
+echo === $(date) Provisioning - k8sJoin $1 by $(whoami) start
+
+sudo sed -i '/master/d' /etc/hosts
+sudo sed -i "1i$1 master" /etc/hosts
+
+# add private key 
+curl -Lo $HOME/.ssh/vagrant https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant
+chmod 0600 $HOME/.ssh/vagrant
+
+# join cluster
+scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant master:/tmp/kubeadm.log  /tmp/kubeadm.log
+token=`cat /tmp/kubeadm.log |grep "kubeadm join"|head -1 |awk -Ftoken '{print $2}'|awk '{print $1}'`
+certhash=`cat /tmp/kubeadm.log |grep discovery-token-ca-cert-hash|tail -1|awk '{print $2}'`
+
+sudo kubeadm join master:6443 --token $token \
+  --discovery-token-ca-cert-hash $certhash
+
+# allow normal user to run kubectl
+if [ -d $HOME/.kube ]; then
+  rm -r $HOME/.kube
+fi
+mkdir -p $HOME/.kube
+scp -q -o "StrictHostKeyChecking no" -i $HOME/.ssh/vagrant master:$HOME/.kube/config $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+echo === $(date) Provisioning - k8sJoin $1 by $(whoami) end
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu1804"
+  config.ssh.insert_key = false
+  config.vm.box_check_update = false
+
+  config.vm.define "master" do |master|
+      master.vm.hostname = "master"
+      master.vm.provider "hyperv" do |v|
+          v.vmname = "master"
+          v.memory = 2048
+          v.cpus = 1
+      end
+      master.vm.provision "shell", inline: $nic, args: "192.168.120.2", privileged: false
+      master.vm.provision "shell", inline: $dockerInstall, privileged: false
+      master.vm.provision "shell", inline: $k8sInstall, privileged: false
+      master.vm.provision "shell", inline: $k8sInit, args: "192.168.120.2", privileged: false
+  end
+  config.vm.define "worker" do |worker|
+      worker.vm.hostname = "worker"
+      worker.vm.provider "hyperv" do |v|
+          v.vmname = "worker"
+          v.memory = 1024
+          v.cpus = 1
+      end
+      worker.vm.provision "shell", inline: $nic, args: "192.168.120.3", privileged: false
+      worker.vm.provision "shell", inline: $dockerInstall, privileged: false
+      worker.vm.provision "shell", inline: $k8sInstall, privileged: false
+      worker.vm.provision "shell", inline: $k8sJoin, args: "192.168.120.2", privileged: false
+  end
+end
