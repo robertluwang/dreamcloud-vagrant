@@ -146,8 +146,8 @@ echo === $(date) Provisioning - k8s-reset.sh $1 by $(whoami) end
 
 It is lazy way to get join token if worker join soon after cluster init by copying kubeadm init log from master, it is fair enough for dev test purpose.
 
-We need to tell master ip $1 to join script, `k8s-join.sh`
-
+We need to tell master ip $1 to join script, `k8s-join.sh`.
+The trick to make scp working in vagrant provision is to setup passwordless ssh using default vagrant key pair.
 ```bash
 echo === $(date) Provisioning - k8s-join.sh $1 by $(whoami) start
 
